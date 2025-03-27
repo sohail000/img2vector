@@ -134,13 +134,7 @@ Upcoming features planned for VectorMorph:
 - Web API for remote processing
 - Additional output formats including PDF and EPS
 
-## 📚 Documentation
 
-Full documentation is available at [docs.vectormorph.io](https://docs.vectormorph.io)
-
-## 🤝 Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## 📄 License
 

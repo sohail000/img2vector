@@ -1,0 +1,6 @@
+vtracer>=0.1.0
+scikit-image>=0.19.2
+opencv-python>=4.5.0
+numpy>=1.20.0
+pillow>=9.0.0
+gradio>=3.0.0

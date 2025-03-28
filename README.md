@@ -1,13 +1,13 @@
-# VectorMorph: Intelligent Image to SVG Conversion
+# img2vector: Intelligent Image to SVG Conversion
 
-![VectorMorph', an AI-powered image-to-SVG conversion tool](https://github.com/user-attachments/assets/f3e1b649-2eaa-49c6-89f0-2c05f2e59294)
+![img2vector](https://github.com/user-attachments/assets/3abf5541-b05b-4036-a96a-033d7101e8bf)
 
 
-[![PyPI version](https://badge.fury.io/py/vectormorph.svg)](https://badge.fury.io/py/vectormorph)
+[![PyPI version](https://badge.fury.io/py/img2vector.svg)](https://badge.fury.io/py/img2vector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Python Versions](https://img.shields.io/pypi/pyversions/vectormorph.svg)
+![Python Versions](https://img.shields.io/pypi/pyversions/img2vector.svg)
 
-VectorMorph is an advanced image-to-SVG conversion library with intelligent detection technology that automatically analyzes image types and optimizes vectorization parameters for superior results. Created to solve the challenge of finding optimal conversion settings for different types of images.
+img2vector is an advanced image-to-SVG conversion library with intelligent detection technology that automatically analyzes image types and optimizes vectorization parameters for superior results. Created to solve the challenge of finding optimal conversion settings for different types of images.
 
 ## 🔥 Features
 
@@ -23,25 +23,25 @@ VectorMorph is an advanced image-to-SVG conversion library with intelligent dete
 
 ### Web Interface
 
-The easiest way to try VectorMorph is through the web interface:
+The easiest way to try img2vector is through the web interface:
 
 ```bash
-pip install vectormorph
-python -m vectormorph.app
+pip install img2vector
+python -m img2vector.app
 ```
 
 ### Python API
 
 ```python
-from vectormorph import convert_image
+from img2vector import convert_image
 
 # Simple conversion with auto-optimization
 convert_image("input.png", "output.svg")
 
 # Advanced usage
-from vectormorph import VectorMorph
+from img2vector import img2vector
 
-converter = VectorMorph()
+converter = img2vector()
 # Detect image type
 image_type = converter.detect_image_type("input.png")
 print(f"Detected image type: {image_type}")
@@ -57,7 +57,7 @@ converter.convert(
 
 ## 📊 Supported Image Types and Optimization
 
-VectorMorph's intelligent detection model recognizes these image types and applies specialized optimization:
+img2vector's intelligent detection model recognizes these image types and applies specialized optimization:
 
 | Image Type | Description | Optimized For |
 |------------|-------------|---------------|
@@ -70,7 +70,7 @@ VectorMorph's intelligent detection model recognizes these image types and appli
 ## 🔧 Installation
 
 ```bash
-pip install vectormorph
+pip install img2vector
 ```
 
 ### System Requirements
@@ -87,13 +87,13 @@ If you encounter import errors after installation:
 pip install vtracer scikit-image opencv-python numpy pillow gradio
 
 # If the package still can't be found, try:
-pip uninstall vectormorph -y
+pip uninstall img2vector -y
 pip install -e .
 ```
 
 ## 💡 Real-World Applications
 
-VectorMorph excels in diverse professional scenarios:
+img2vector excels in diverse professional scenarios:
 
 - **Cartography**: Convert geographic images into SVGs for scalable, editable maps suitable for both print and digital mediums
 - **Web Development**: Transform raster images to SVGs for websites, ensuring graphics are crisp and load efficiently
@@ -102,9 +102,9 @@ VectorMorph excels in diverse professional scenarios:
 - **Architecture & Engineering**: Transform blueprints and diagrams into clean vector formats for professional documentation
 - **Illustration Enhancement**: Convert hand-drawn illustrations to vectors for professional publishing
 
-## ✨ Why VectorMorph?
+## ✨ Why img2vector?
 
-Traditional vectorization tools use one-size-fits-all settings, requiring users to manually tweak numerous parameters through trial and error. VectorMorph leverages computer vision to analyze your specific image and automatically apply custom-tailored optimization. The result?
+Traditional vectorization tools use one-size-fits-all settings, requiring users to manually tweak numerous parameters through trial and error. img2vector leverages computer vision to analyze your specific image and automatically apply custom-tailored optimization. The result?
 
 - Cleaner SVGs with fewer unnecessary nodes
 - Smaller file sizes without quality loss
@@ -114,7 +114,7 @@ Traditional vectorization tools use one-size-fits-all settings, requiring users 
 
 ## 🌟 Technical Highlights
 
-VectorMorph's image detection algorithm uses multiple factors to analyze images:
+img2vector's image detection algorithm uses multiple factors to analyze images:
 
 - Edge density analysis for determining image complexity
 - Histogram entropy calculation for texture analysis
@@ -126,7 +126,7 @@ After detection, the system applies specialized parameter sets optimized through
 
 ## 🛠️ Future Development
 
-Upcoming features planned for VectorMorph:
+Upcoming features planned for img2vector:
 
 - Batch processing for converting multiple images
 - Enhanced color quantization options

@@ -4,14 +4,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="vectormorph",
-    version="0.1.0",
+    name="img2vector",
+    version="1.0.0",
     author="Sohail Khan",
-    author_email="your.email@example.com",  # replace with your email
+    author_email="2013khansohail@gmail.com",  # replace with your email
     description="Intelligent image to SVG vectorization with AI-powered optimization",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/sohail000/vectormorph",
+    url="https://github.com/sohail000/img2vector",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -29,7 +29,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "vectormorph=vectormorph.app:main",
+            "img2vector=img2vector.app:main",
         ],
     },
 )

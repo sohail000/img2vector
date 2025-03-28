@@ -1,48 +1,69 @@
+# C:\Users\2013k\OneDrive\Desktop\final\robust_test.py
 import os
+import sys
+import time
+from PIL import Image
+from img2vector import Img2Vector, convert_image, detect_image_type
 
-def display_structure(path='.', indent=0, max_depth=None, exclude_dirs=None):
-    """
-    Display the directory structure starting from the given path.
+def test_with_image(image_path, output_dir):
+    """Test conversion with a single image, with better error handling."""
+    print(f"\nTesting image: {os.path.basename(image_path)}")
     
-    Parameters:
-        path (str): The path to start from. Default is current directory.
-        indent (int): The current indentation level.
-        max_depth (int): Maximum depth to traverse. None for unlimited.
-        exclude_dirs (list): List of directory names to exclude.
-    """
-    if exclude_dirs is None:
-        exclude_dirs = ['.git', '__pycache__', '.venv', 'venv', '.idea', '.vs', 'node_modules']
-    
-    if max_depth is not None and indent > max_depth:
+    # Check if the file exists
+    if not os.path.exists(image_path):
+        print(f"ERROR: Image not found at: {image_path}")
         return
-    
-    if os.path.isdir(path):
-        # Print directory name
-        print('  ' * indent + '├── ' + os.path.basename(path) + '/')
         
-        # List items in directory
-        items = sorted(os.listdir(path))
-        for i, item in enumerate(items):
-            item_path = os.path.join(path, item)
-            
-            # Skip excluded directories
-            if os.path.isdir(item_path) and item in exclude_dirs:
-                continue
-                
-            # Recursively display subdirectories and files
-            display_structure(item_path, indent + 1, max_depth, exclude_dirs)
-    else:
-        # Print file name
-        print('  ' * indent + '├── ' + os.path.basename(path))
+    # Check file size
+    file_size = os.path.getsize(image_path)
+    print(f"File size: {file_size} bytes")
+    
+    # Try to open with PIL first to verify the image is valid
+    try:
+        img = Image.open(image_path)
+        img.verify()  # Verify the image is valid
+        print(f"Image format: {img.format}, Size: {img.size}, Mode: {img.mode}")
+        
+        # Close and reopen to reset file pointer
+        img.close()
+        img = Image.open(image_path)
+        
+        # Save a clean copy in PNG format to ensure compatibility
+        clean_path = os.path.join(output_dir, "clean_input.png")
+        img.save(clean_path)
+        print(f"Saved clean copy to: {clean_path}")
+        
+        # Detect image type
+        image_type = detect_image_type(clean_path)
+        print(f"Detected image type: {image_type}")
+        
+        # Convert using the clean PNG
+        output_path = os.path.join(output_dir, "output.svg")
+        print(f"Converting with auto-optimization...")
+        start_time = time.time()
+        result = convert_image(clean_path, output_path, auto_optimize=True)
+        elapsed = time.time() - start_time
+        print(f"Conversion successful! Saved to: {output_path}")
+        print(f"Time taken: {elapsed:.2f} seconds")
+        
+    except Exception as e:
+        print(f"ERROR processing image: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
-    import sys
+    if len(sys.argv) < 2:
+        print("Please provide an image path as argument")
+        print("Usage: python robust_test.py C:/path/to/image.jpg")
+        sys.exit(1)
+        
+    # Get image path from command line
+    image_path = sys.argv[1]
     
-    # Get path from command line arguments, or use current directory
-    target_path = sys.argv[1] if len(sys.argv) > 1 else '.'
+    # Create output directory
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "svg_output")
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"Created output directory: {output_dir}")
     
-    # Display structure with optional depth limit
-    max_depth = int(sys.argv[2]) if len(sys.argv) > 2 else None
-    
-    print(f"Structure of {os.path.abspath(target_path)}:")
-    display_structure(target_path, 0, max_depth)
+    # Run the test
+    test_with_image(image_path, output_dir)

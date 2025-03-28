@@ -1,7 +1,7 @@
 """
-VectorMorph Web Interface
+img2vector Web Interface
 
-A Gradio web application for the VectorMorph library.
+A Gradio web application for the img2vector library.
 """
 import os
 import tempfile
@@ -9,8 +9,8 @@ import uuid
 import gradio as gr
 from PIL import Image
 
-# Import from the VectorMorph package
-from .core.converter import VectorMorph
+# Import from the img2vector package
+from .core.converter import Img2Vector
 from .models.detector import detect_image_type, IMAGE_TYPES
 
 # Check for dependencies
@@ -104,14 +104,14 @@ def convert_to_vector(
     else:
         image.save(input_path)
     
-    # Create VectorMorph instance
-    converter = VectorMorph()
+    # Create Img2Vector instance
+    converter = Img2Vector()
     
     # Auto-optimize message
     optimizer_message = ""
     
     try:
-        # Process with VectorMorph
+        # Process with img2vector
         if auto_optimize:
             # Detect image type
             if isinstance(image, dict) and 'path' in image:
@@ -219,7 +219,7 @@ def create_interface():
             gr.HTML(
                 """
                 <div class="title">
-                    <h1>✨ VectorMorph - Intelligent Image to SVG Converter</h1>
+                    <h1>✨ img2vector - Intelligent Image to SVG Converter</h1>
                 </div>
                 <div class="subtitle">
                     <p>Convert raster images to high-quality vector graphics with AI-powered optimization</p>
@@ -340,7 +340,7 @@ def create_interface():
                     with gr.Accordion("Image Type Detection", open=True):
                         gr.Markdown(
                             """
-                            VectorMorph's intelligent detection model recognizes these image types:
+                            img2vector's intelligent detection model recognizes these image types:
                             
                             - **Line Drawing**: Black and white sketches, hand drawings
                             - **Technical Drawing**: Technical diagrams, blueprints, schematics
@@ -442,14 +442,14 @@ def create_interface():
     return app
 
 def main():
-    """Launch the VectorMorph web interface."""
+    """Launch the img2vector web interface."""
     try:
         import vtracer
     except ImportError:
         print("WARNING: vtracer not found. Please install with: pip install vtracer")
         print("The app will run but conversion won't work properly.")
     
-    print("Starting VectorMorph...")
+    print("Starting img2vector...")
     print("For best results, the auto-optimization feature will analyze your image type")
     print("and apply optimal parameters automatically.")
     

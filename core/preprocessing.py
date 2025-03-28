@@ -1,5 +1,5 @@
 """
-Image preprocessing module for VectorMorph.
+Image preprocessing module for img2vector.
 
 This module provides functions for preprocessing images before vectorization
 to improve conversion quality and results.

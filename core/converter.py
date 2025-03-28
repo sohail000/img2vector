@@ -1,5 +1,5 @@
 """
-Core VectorMorph conversion engine.
+Core img2vector conversion engine.
 """
 import os
 import tempfile
@@ -19,13 +19,13 @@ except ImportError:
         "The vtracer library is required. Install with: pip install vtracer"
     )
 
-class VectorMorph:
+class Img2Vector:
     """
-    Main class for VectorMorph - an intelligent image to SVG converter.
+    Main class for img2vector - an intelligent image to SVG converter.
     """
     
     def __init__(self):
-        """Initialize the VectorMorph converter."""
+        """Initialize the img2vector converter."""
         self.temp_dir = tempfile.mkdtemp()
         
     def convert(
@@ -166,7 +166,7 @@ def convert_image(
     Returns:
         str: SVG content if output_path is None, otherwise path to the output file
     """
-    converter = VectorMorph()
+    converter = Img2Vector()
     return converter.convert(
         input_path, 
         output_path=output_path,

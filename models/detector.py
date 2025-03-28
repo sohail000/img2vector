@@ -1,7 +1,7 @@
 """
-VectorMorph Image Type Detection Model
+img2vector Image Type Detection Model
 
-This module contains the core intelligence of VectorMorph - an advanced
+This module contains the core intelligence of img2vector - an advanced
 image classification model that detects the type of image to apply optimal
 vectorization parameters.
 """

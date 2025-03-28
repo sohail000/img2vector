@@ -166,11 +166,33 @@ def convert_image(
     Returns:
         str: SVG content if output_path is None, otherwise path to the output file
     """
-    converter = Img2Vector()
-    return converter.convert(
-        input_path, 
-        output_path=output_path,
-        auto_optimize=auto_optimize,
-        preprocessing_level=preprocessing_level,
-        **kwargs
-    )
+    # Create a temporary directory for processing if needed
+    import tempfile
+    import os
+    from PIL import Image
+    
+    temp_dir = tempfile.mkdtemp()
+    
+    try:
+        # Try to open and validate the image with PIL
+        img = Image.open(input_path)
+        
+        # Save as a clean PNG to ensure compatibility with VTracer
+        clean_path = os.path.join(temp_dir, "clean_input.png")
+        img.save(clean_path)
+        
+        # Use the clean PNG for conversion
+        converter = Img2Vector()
+        result = converter.convert(
+            clean_path,  # Always use the clean path, even for "none" preprocessing
+            output_path=output_path,
+            auto_optimize=auto_optimize,
+            preprocessing_level=preprocessing_level,  # Pass the original preprocessing level
+            **kwargs
+        )
+        
+        return result
+        
+    except Exception as e:
+        # Add more context to the error
+        raise Exception(f"Error converting image '{input_path}': {str(e)}") from e

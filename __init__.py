@@ -5,7 +5,7 @@ Created by Sohail Khan
 https://github.com/sohail000/img2vector
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 
 from .core.converter import Img2Vector, convert_image
 from .models.detector import detect_image_type, IMAGE_TYPES

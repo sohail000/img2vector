@@ -40,11 +40,13 @@ from img2vector import convert_image
 convert_image("input.png", "output.svg")
 
 # Advanced usage
-from img2vector import img2vector
+from img2vector import Img2Vector, detect_image_type
 
-converter = img2vector()
-# Detect image type
-image_type = converter.detect_image_type("input.png")
+# Create converter instance
+converter = Img2Vector()
+
+# Detect image type (using the standalone function)
+image_type = detect_image_type("input.png")
 print(f"Detected image type: {image_type}")
 
 # Custom conversion
@@ -53,6 +55,62 @@ converter.convert(
     "output.svg",
     auto_optimize=True,
     preprocessing_level="medium"
+)
+```
+
+## 🔍 Conversion Options Explained
+
+### Preprocessing Levels
+
+When converting images, img2vector offers different preprocessing levels to optimize results for various image types:
+
+- **None**: No additional preprocessing applied. The image is still converted to a compatible format for processing but without filters or enhancements. Best for clean, high-quality images with clear lines and shapes.
+  
+- **Light**: Basic noise reduction and contrast enhancement. Good for slightly noisy images or photos with moderate detail.
+  
+- **Medium**: More aggressive denoising and edge enhancement. Excellent for technical drawings, diagrams, or images with important line work that needs to be preserved while removing noise.
+  
+- **Heavy**: Applies thresholding and morphological operations for maximum clarity. Best for sketches, hand-drawn content, or images where you want to extract only the most prominent features.
+
+### Auto-Optimization
+
+The `auto_optimize` parameter enables img2vector's intelligent detection system:
+
+- When set to `True` (default), the system analyzes your image to identify its type and automatically selects optimal parameters.
+  
+- When set to `False`, you can manually control all conversion parameters like color mode, hierarchical mode, and various thresholds.
+
+### Example Output By Image Type
+
+| Image Type | Recommended Preprocessing | Expected Results |
+|------------|---------------------------|------------------|
+| Line Drawing | Light to Medium | Clean paths with smooth curves, minimal nodes |
+| Technical Drawing | None to Light | Precise corners, accurate straight lines |
+| Geometric Shapes | None | Perfect circles, squares, and other primitives |
+| Diagram | Medium | Clear connection lines, preserved structure |
+| Photo | Light to Medium | Balanced detail preservation with manageable file size |
+
+### Advanced Parameters
+
+For users who need fine-grained control, img2vector exposes additional parameters:
+
+```python
+converter.convert(
+    "input.png",
+    "output.svg",
+    auto_optimize=False,
+    preprocessing_level="medium",
+    colormode="color",       # "color" or "binary"
+    hierarchical="stacked",  # "stacked" or "cutout"
+    mode="spline",           # "spline" or "polygon"
+    filter_speckle=4,        # 0-20 (higher removes more small details)
+    color_precision=6,       # 1-10 (higher preserves more color accuracy)
+    layer_difference=16,     # 1-32 (controls how colors are grouped)
+    corner_threshold=60,     # 0-180 (higher creates more corners)
+    length_threshold=4.0,    # 0-10 (higher simplifies paths more)
+    max_iterations=10,       # 1-20 (higher improves optimization)
+    splice_threshold=45,     # 0-90 (controls path joining)
+    path_precision=3         # 1-10 (controls decimal precision)
 )
 ```
 
@@ -149,4 +207,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-*Created with ❤️ by Sohail Khan*
+*Created with by Sohail Khan*

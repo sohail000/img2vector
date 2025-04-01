@@ -1,8 +1,9 @@
 # img2vector
 
-[![PyPI version](https://badge.![img2vector](https://github.com/user-attachments/assets/a305b8e5-c909-4e15-9759-07e9b6cb7a3b)
 
-fury.io/py/img2vector.svg)](https://badge.fury.io/py/img2vector)
+(https://badge.![img2vector](https://github.com/user-attachments/assets/a305b8e5-c909-4e15-9759-07e9b6cb7a3b)
+
+[![PyPI version]fury.io/py/img2vector.svg)](https://badge.fury.io/py/img2vector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An intelligent image to SVG vectorization tool with AI-powered optimization.

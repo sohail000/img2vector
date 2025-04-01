@@ -73,8 +73,14 @@ class Img2Vector:
         # Handle different input types
         if isinstance(input_image, str):
             # It's a file path
-            image_path = input_image
-            pil_image = Image.open(input_image)
+            try:
+                pil_image = Image.open(input_image)
+                # Always create a clean copy for vtracer to avoid path issues
+                clean_path = os.path.join(self.temp_dir, f"clean_input_{uuid.uuid4()}.png")
+                pil_image.save(clean_path)
+                image_path = clean_path
+            except Exception as e:
+                raise ValueError(f"Could not open image at path '{input_image}': {str(e)}")
         elif isinstance(input_image, Image.Image):
             # It's a PIL Image
             pil_image = input_image
@@ -89,6 +95,7 @@ class Img2Vector:
             output_path = os.path.join(self.temp_dir, f"output_{uuid.uuid4()}.svg")
             return_content = True
         else:
+            output_path = os.path.abspath(output_path)
             return_content = False
         
         # Auto-optimize parameters if requested
@@ -99,18 +106,30 @@ class Img2Vector:
             # Get optimal parameters
             optimal_params = get_optimal_params(image_type)
             
-            # Update parameters
-            colormode = optimal_params["colormode"]
-            hierarchical = optimal_params["hierarchical"]
-            mode = optimal_params["mode"]
-            filter_speckle = optimal_params["filter_speckle"]
-            color_precision = optimal_params["color_precision"]
-            layer_difference = optimal_params["layer_difference"]
-            corner_threshold = optimal_params["corner_threshold"]
-            length_threshold = optimal_params["length_threshold"]
-            max_iterations = optimal_params["max_iterations"]
-            splice_threshold = optimal_params["splice_threshold"]
-            path_precision = optimal_params["path_precision"]
+            # Update parameters only if not explicitly specified by user
+            # This is the key fix - only override default values, not user-specified ones
+            if colormode == "color":  # Default value, can be overridden
+                colormode = optimal_params["colormode"]
+            if hierarchical == "stacked":  # Default value, can be overridden
+                hierarchical = optimal_params["hierarchical"]
+            if mode == "spline":  # Default value, can be overridden
+                mode = optimal_params["mode"]
+            if filter_speckle == 4:  # Default value, can be overridden
+                filter_speckle = optimal_params["filter_speckle"]
+            if color_precision == 6:  # Default value, can be overridden
+                color_precision = optimal_params["color_precision"]
+            if layer_difference == 16:  # Default value, can be overridden
+                layer_difference = optimal_params["layer_difference"]
+            if corner_threshold == 60:  # Default value, can be overridden
+                corner_threshold = optimal_params["corner_threshold"]
+            if length_threshold == 4.0:  # Default value, can be overridden
+                length_threshold = optimal_params["length_threshold"]
+            if max_iterations == 10:  # Default value, can be overridden
+                max_iterations = optimal_params["max_iterations"]
+            if splice_threshold == 45:  # Default value, can be overridden
+                splice_threshold = optimal_params["splice_threshold"]
+            if path_precision == 3:  # Default value, can be overridden
+                path_precision = optimal_params["path_precision"]
         
         # Preprocess the image if needed
         if preprocessing_level != "none":
@@ -120,22 +139,32 @@ class Img2Vector:
         else:
             input_path = image_path
         
+        # Verify the file exists before passing to vtracer
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"Image file does not exist at path: {input_path}")
+        
+        # Make sure output directory exists
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        
         # Convert the image to SVG using VTracer
-        vtracer.convert_image_to_svg_py(
-            input_path,
-            output_path,
-            colormode=colormode,
-            hierarchical=hierarchical,
-            mode=mode,
-            filter_speckle=int(filter_speckle),
-            color_precision=int(color_precision),
-            layer_difference=int(layer_difference),
-            corner_threshold=int(corner_threshold),
-            length_threshold=float(length_threshold),
-            max_iterations=int(max_iterations),
-            splice_threshold=int(splice_threshold),
-            path_precision=int(path_precision)
-        )
+        try:
+            vtracer.convert_image_to_svg_py(
+                input_path,
+                output_path,
+                colormode=colormode,
+                hierarchical=hierarchical,
+                mode=mode,
+                filter_speckle=int(filter_speckle),
+                color_precision=int(color_precision),
+                layer_difference=int(layer_difference),
+                corner_threshold=int(corner_threshold),
+                length_threshold=float(length_threshold),
+                max_iterations=int(max_iterations),
+                splice_threshold=int(splice_threshold),
+                path_precision=int(path_precision)
+            )
+        except Exception as e:
+            raise Exception(f"VTracer conversion failed: {str(e)}\nParameters: colormode={colormode}, hierarchical={hierarchical}, mode={mode}")
         
         # Return SVG content or file path
         if return_content:
@@ -188,7 +217,7 @@ def convert_image(
             output_path=output_path,
             auto_optimize=auto_optimize,
             preprocessing_level=preprocessing_level,  # Pass the original preprocessing level
-            **kwargs
+            **kwargs  # Pass any additional user-provided parameters
         )
         
         return result

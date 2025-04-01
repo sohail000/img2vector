@@ -1,210 +1,413 @@
-# img2vector: Intelligent Image to SVG Conversion
-
-![img2vector](https://github.com/user-attachments/assets/f979fda2-8680-4d48-9ad1-f64214627ec5)
-
-
+# img2vector
 
 [![PyPI version](https://badge.fury.io/py/img2vector.svg)](https://badge.fury.io/py/img2vector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Python Versions](https://img.shields.io/pypi/pyversions/img2vector.svg)
 
-img2vector is an advanced image-to-SVG conversion library with intelligent detection technology that automatically analyzes image types and optimizes vectorization parameters for superior results. Created to solve the challenge of finding optimal conversion settings for different types of images.
+An intelligent image to SVG vectorization tool with AI-powered optimization.
 
-## 🔥 Features
+## Features
 
-- **Intelligent Image Analysis:** Automatically identifies whether your image is a line drawing, technical diagram, photo, or geometric shapes using a custom-built computer vision algorithm
-- **Parameter Optimization:** Selects the perfect conversion parameters based on content analysis, eliminating trial-and-error
-- **Multiple Vectorization Modes:** Choose between spline mode (for smooth curves) and polygon mode (for precise edges) based on your needs
-- **Smart Preprocessing:** Four levels of image enhancement from light to heavy to handle noisy or low-quality source images
-- **Clean, Optimized SVGs:** Produces high-quality vector graphics with minimal file size and node count
-- **Intuitive Web Interface:** Easy-to-use Gradio UI for quick conversions without coding
-- **Programmer API:** Full Python API for integration into automated workflows
+- **AI-Based Image Analysis**: Automatically detects image type and optimizes conversion parameters
+- **High-Quality Vectorization**: Convert raster images to clean, editable SVG vectors
+- **Preprocessing Options**: Multiple levels of image preprocessing for optimal results
+- **Batch Processing**: Convert multiple images in parallel
+- **SVG Optimization**: Reduce file size while maintaining quality
+- **Web Interface**: User-friendly Gradio UI for easy conversion
+- **Python API**: Use as a library in your Python projects
 
-## 🚀 Quick Start
-
-### Web Interface
-
-The easiest way to try img2vector is through the web interface:
+## Installation
 
 ```bash
 pip install img2vector
-python -m img2vector.app
 ```
 
-### Python API
+## Quick Start
+
+### Basic Usage
+
+```python
+# Simple conversion with default settings (auto-optimization)
+from img2vector import convert_image
+
+convert_image("input.jpg", "output.svg")
+```
+
+### Advanced Usage
+
+```python
+from img2vector import Img2Vector
+
+# Create a converter instance
+converter = Img2Vector()
+
+# Convert with specific parameters
+converter.convert(
+    "input.jpg",
+    output_path="output.svg",
+    auto_optimize=True,  # Will still respect your manual parameters
+    preprocessing_level="medium",
+    colormode="binary",
+    hierarchical="stacked"
+)
+```
+
+### Batch Processing
+
+```python
+from img2vector import batch_convert
+
+# Convert all images in a folder
+batch_convert(
+    "input_folder/",
+    "output_folder/",
+    num_workers=4,  # Process 4 images in parallel
+    recursive=True,  # Include subfolders
+    preprocessing_level="light"
+)
+```
+
+### SVG Optimization
+
+```python
+from img2vector import optimize_svg
+
+# Optimize an SVG file to reduce file size
+result = optimize_svg("input.svg", "optimized.svg", level="moderate")
+output_path, size_before, size_after, reduction_percentage = result
+
+print(f"File size reduced by {reduction_percentage:.1f}%")
+print(f"Original: {size_before/1024:.1f} KB → Optimized: {size_after/1024:.1f} KB")
+```
+
+### Web Interface
+
+To launch the user-friendly web interface:
+
+```python
+from img2vector.app import main
+
+main()
+```
+
+Or, when installed as a package:
+
+```bash
+img2vector ui
+```
+
+## Image Type Detection
+
+img2vector's intelligent detection model recognizes these image types and applies optimal parameters for each:
+
+- **Line Drawing**: Black and white sketches, hand drawings
+- **Technical Drawing**: Technical diagrams, blueprints, schematics
+- **Geometric Shapes**: Simple shapes like circles, squares, triangles
+- **Diagram**: Flowcharts, mind maps, organizational charts
+- **Photo**: Photographs or complex images
+
+## Parameters
+
+### Basic Parameters
+
+- **auto_optimize** (bool): Enable AI-based parameter optimization
+- **preprocessing_level** (str): "none", "light", "medium", or "heavy"
+- **colormode** (str): "color" or "binary" vectorization mode
+- **hierarchical** (str): "stacked" or "cutout" layering style
+- **mode** (str): "spline" (smooth curves) or "polygon" (straight lines)
+
+### Advanced Parameters
+
+- **filter_speckle** (int): Speckle filtering level (0-20)
+- **color_precision** (int): Color precision level (1-10)
+- **layer_difference** (int): Layer difference threshold (1-32)
+- **corner_threshold** (int): Corner detection threshold (0-180)
+- **length_threshold** (float): Length threshold for path simplification (0-10)
+- **max_iterations** (int): Maximum iterations for path optimization (1-20)
+- **splice_threshold** (int): Splice threshold for path joining (0-90)
+- **path_precision** (int): Path coordinate precision (1-10)
+
+## Tips for Best Results
+
+- **For technical diagrams**: Use the 'binary' color mode with 'polygon' option
+- **For smooth curves**: Use 'spline' mode with low corner threshold values
+- **For crisp edges**: Use 'polygon' mode with high corner threshold values
+- **For noisy images**: Try 'medium' or 'heavy' preprocessing and increase filter_speckle
+- **For color images**: Auto-optimization works best, or manually use 'color' mode with higher color precision
+- **For smaller file sizes**: Use lower path_precision values and higher filter_speckle values
+
+## Preprocessing Levels
+
+- **none**: No preprocessing, use original image
+- **light**: Basic noise reduction and contrast enhancement
+- **medium**: More aggressive denoising and edge enhancement
+- **heavy**: Thresholding and morphological operations for maximum clarity
+
+## Examples
+
+### Converting a Photo with Auto-Optimization
 
 ```python
 from img2vector import convert_image
 
-# Simple conversion with auto-optimization
-convert_image("input.png", "output.svg")
-
-# Advanced usage
-from img2vector import Img2Vector, detect_image_type
-
-# Create converter instance
-converter = Img2Vector()
-
-# Detect image type (using the standalone function)
-image_type = detect_image_type("input.png")
-print(f"Detected image type: {image_type}")
-
-# Custom conversion
-converter.convert(
-    "input.png", 
-    "output.svg",
-    auto_optimize=True,
-    preprocessing_level="medium"
-)
+# Auto-detect that it's a photo and apply optimal parameters
+convert_image("photo.jpg", "photo.svg")
 ```
 
-## 🔍 Conversion Options Explained
-
-### Preprocessing Levels
-
-When converting images, img2vector offers different preprocessing levels to optimize results for various image types:
-
-- **None**: No additional preprocessing applied. The image is still converted to a compatible format for processing but without filters or enhancements. Best for clean, high-quality images with clear lines and shapes.
-  
-- **Light**: Basic noise reduction and contrast enhancement. Good for slightly noisy images or photos with moderate detail.
-  
-- **Medium**: More aggressive denoising and edge enhancement. Excellent for technical drawings, diagrams, or images with important line work that needs to be preserved while removing noise.
-  
-- **Heavy**: Applies thresholding and morphological operations for maximum clarity. Best for sketches, hand-drawn content, or images where you want to extract only the most prominent features.
-
-### Auto-Optimization
-
-The `auto_optimize` parameter enables img2vector's intelligent detection system:
-
-- When set to `True` (default), the system analyzes your image to identify its type and automatically selects optimal parameters.
-  
-- When set to `False`, you can manually control all conversion parameters like color mode, hierarchical mode, and various thresholds.
-
-### Example Output By Image Type
-
-| Image Type | Recommended Preprocessing | Expected Results |
-|------------|---------------------------|------------------|
-| Line Drawing | Light to Medium | Clean paths with smooth curves, minimal nodes |
-| Technical Drawing | None to Light | Precise corners, accurate straight lines |
-| Geometric Shapes | None | Perfect circles, squares, and other primitives |
-| Diagram | Medium | Clear connection lines, preserved structure |
-| Photo | Light to Medium | Balanced detail preservation with manageable file size |
-
-### Advanced Parameters
-
-For users who need fine-grained control, img2vector exposes additional parameters:
+### Converting a Line Drawing to Binary SVG
 
 ```python
+from img2vector import Img2Vector
+
+converter = Img2Vector()
 converter.convert(
-    "input.png",
-    "output.svg",
-    auto_optimize=False,
-    preprocessing_level="medium",
-    colormode="color",       # "color" or "binary"
-    hierarchical="stacked",  # "stacked" or "cutout"
-    mode="spline",           # "spline" or "polygon"
-    filter_speckle=4,        # 0-20 (higher removes more small details)
-    color_precision=6,       # 1-10 (higher preserves more color accuracy)
-    layer_difference=16,     # 1-32 (controls how colors are grouped)
-    corner_threshold=60,     # 0-180 (higher creates more corners)
-    length_threshold=4.0,    # 0-10 (higher simplifies paths more)
-    max_iterations=10,       # 1-20 (higher improves optimization)
-    splice_threshold=45,     # 0-90 (controls path joining)
-    path_precision=3         # 1-10 (controls decimal precision)
+    "sketch.png",
+    output_path="sketch.svg",
+    colormode="binary",
+    mode="spline",
+    preprocessing_level="light"
 )
 ```
 
-## 📊 Supported Image Types and Optimization
+### Converting a Technical Diagram
 
-img2vector's intelligent detection model recognizes these image types and applies specialized optimization:
+```python
+from img2vector import convert_image
 
-| Image Type | Description | Optimized For |
-|------------|-------------|---------------|
-| Line Drawing | Hand-drawn sketches, illustrations | Clean lines with minimal nodes, smooth curves |
-| Technical Drawing | Blueprints, schematics, CAD | Precise corners, straight edges, accurate dimensions |
-| Geometric Shapes | Simple shapes, logos | Accurate curves and angles, clean intersections |
-| Diagram | Flowcharts, mind maps | Connected elements, text preservation, relationship clarity |
-| Photo | Photographs, complex images | Color accuracy, detail preservation, tonal ranges |
-
-## 🔧 Installation
-
-```bash
-pip install img2vector
+convert_image(
+    "diagram.png",
+    "diagram.svg",
+    auto_optimize=False,
+    colormode="binary",
+    mode="polygon",
+    corner_threshold=80,
+    length_threshold=2.0
+)
 ```
 
-### System Requirements
+### Using a PIL Image
 
-- Python 3.7+
-- Dependencies: vtracer, scikit-image, opencv-python, numpy, pillow, gradio
-- Works on Windows, macOS, and Linux
+```python
+from PIL import Image
+from img2vector import Img2Vector
 
-### Troubleshooting
+# Open with PIL and process before vectorizing
+img = Image.open("input.jpg")
+img = img.resize((800, 600))
+img = img.convert("RGB")
 
-If you encounter import errors after installation:
-```bash
-# Make sure to install all dependencies
-pip install vtracer scikit-image opencv-python numpy pillow gradio
-
-# If the package still can't be found, try:
-pip uninstall img2vector -y
-pip install -e .
+converter = Img2Vector()
+converter.convert(img, output_path="processed.svg")
 ```
 
-## 💡 Real-World Applications
+## API Reference
 
-img2vector excels in diverse professional scenarios:
+### Main Functions
 
-- **Cartography**: Convert geographic images into SVGs for scalable, editable maps suitable for both print and digital mediums
-- **Web Development**: Transform raster images to SVGs for websites, ensuring graphics are crisp and load efficiently
-- **Technical Documentation**: Convert technical drawings and schematics into SVG format for clear, scalable illustrations in manuals and guides
-- **Logo Recreation**: Recreate logos from bitmap images for high-quality branding across all media
-- **Architecture & Engineering**: Transform blueprints and diagrams into clean vector formats for professional documentation
-- **Illustration Enhancement**: Convert hand-drawn illustrations to vectors for professional publishing
+#### `convert_image(input_path, output_path=None, auto_optimize=True, preprocessing_level="none", **kwargs)`
 
-## ✨ Why img2vector?
+The primary helper function for simple conversions.
 
-Traditional vectorization tools use one-size-fits-all settings, requiring users to manually tweak numerous parameters through trial and error. img2vector leverages computer vision to analyze your specific image and automatically apply custom-tailored optimization. The result?
+- **input_path** (str): Path to the input image file
+- **output_path** (str, optional): Path to save the output SVG file. If None, returns SVG content.
+- **auto_optimize** (bool): Whether to automatically optimize parameters based on image type
+- **preprocessing_level** (str): Level of preprocessing ("none", "light", "medium", "heavy")
+- **kwargs**: Additional parameters to pass to the converter
 
-- Cleaner SVGs with fewer unnecessary nodes
-- Smaller file sizes without quality loss
-- Better visual quality with appropriate path types
-- Significant time savings from automated parameter selection
-- Consistent results across different image types
+#### `batch_convert(input_folder, output_folder, num_workers=4, recursive=False, file_extensions=('.jpg', '.jpeg', '.png', '.bmp', '.gif'), auto_optimize=True, preprocessing_level="none", **kwargs)`
 
-## 🌟 Technical Highlights
+Convert multiple images to SVG in batch mode with parallel processing.
 
-img2vector's image detection algorithm uses multiple factors to analyze images:
+- **input_folder** (str): Path to folder containing input images
+- **output_folder** (str): Path to folder for output SVG files
+- **num_workers** (int): Number of parallel workers (default: 4)
+- **recursive** (bool): Whether to search for images in subfolders
+- **file_extensions** (tuple): Supported file extensions
+- **auto_optimize** (bool): Whether to use auto-optimization
+- **preprocessing_level** (str): Preprocessing level
+- **kwargs**: Additional parameters to pass to the converter
 
-- Edge density analysis for determining image complexity
-- Histogram entropy calculation for texture analysis
-- Hough transform for line and shape detection
-- Texture complexity scoring for material differentiation
-- Color complexity measurement for photo identification
+#### `optimize_svg(svg_path, output_path=None, level='moderate')`
 
-After detection, the system applies specialized parameter sets optimized through extensive testing for each image category.
+Optimize an SVG file to reduce file size.
 
-## 🛠️ Future Development
+- **svg_path** (str): Path to SVG file
+- **output_path** (str, optional): Path to save optimized SVG. If None, overwrites input file.
+- **level** (str): Optimization level - 'light', 'moderate', or 'aggressive'
 
-Upcoming features planned for img2vector:
+Returns a tuple: (output_path, size_before, size_after, reduction_percentage)
 
-- Batch processing for converting multiple images
-- Enhanced color quantization options
-- Custom presets for recurring image types
-- Web API for remote processing
-- Additional output formats including PDF and EPS
+### Classes
 
+#### `Img2Vector`
 
+The core converter class with full parameter control.
 
-## 📄 License
+```python
+converter = Img2Vector()
+converter.convert(
+    input_image,      # Path or PIL Image
+    output_path=None, # Output path (if None, returns SVG content)
+    auto_optimize=True,
+    preprocessing_level="none",
+    colormode="color",
+    hierarchical="stacked",
+    mode="spline",
+    filter_speckle=4,
+    color_precision=6,
+    layer_difference=16,
+    corner_threshold=60,
+    length_threshold=4.0,
+    max_iterations=10,
+    splice_threshold=45,
+    path_precision=3
+)
+```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Troubleshooting
 
-## 🙏 Acknowledgments
+### Common Issues
 
-- [VTracer](https://github.com/visioncortex/vtracer) for the core vectorization engine
-- [Gradio](https://gradio.app/) for the web interface framework
-- [OpenCV](https://opencv.org/) and [scikit-image](https://scikit-image.org/) for image processing
+#### SVG Output Has Missing Elements or Strange Artifacts
 
----
+- Try different preprocessing levels - "medium" or "heavy" can help with noisy images
+- For binary images with thin lines, using "light" preprocessing may preserve more details
+- Adjust filter_speckle: lower values (1-2) keep more details, higher values remove noise
 
-*Created with by Sohail Khan*
+#### Conversion is Too Slow
+
+- Use a lower color_precision value (3-5) for faster processing
+- Set mode="polygon" which is generally faster than "spline"
+- For batch processing, adjust num_workers based on your CPU cores (usually cores-1)
+
+#### File Size is Too Large
+
+- Decrease path_precision (try 2 or 1)
+- Increase filter_speckle to remove small details
+- Use SVG optimization with level="aggressive"
+- Try mode="polygon" instead of "spline"
+
+#### Paths Are Too Jagged or Smooth
+
+- For jagged paths: use mode="spline" with lower corner_threshold (30-50)
+- For smoother corners: increase corner_threshold (70-90)
+- Adjust length_threshold: lower values (1-2) preserve more details, higher values simplify paths
+
+### Advanced Usage
+
+#### Handling Multiple Image Types in a Single Batch
+
+If you have a mix of different image types in a batch process:
+
+```python
+import os
+from img2vector import batch_convert, convert_image
+
+# Define custom parameters for specific file patterns
+def custom_conversion(input_path, output_path):
+    # Use specific parameters based on filename patterns
+    filename = os.path.basename(input_path).lower()
+    
+    if "diagram" in filename or "tech" in filename:
+        # Technical drawings
+        return convert_image(
+            input_path, 
+            output_path,
+            auto_optimize=True,
+            colormode="binary",
+            mode="polygon"
+        )
+    elif "sketch" in filename or "drawing" in filename:
+        # Hand-drawn content
+        return convert_image(
+            input_path, 
+            output_path,
+            auto_optimize=True,
+            preprocessing_level="light",
+            mode="spline"
+        )
+    else:
+        # Default photos
+        return convert_image(
+            input_path, 
+            output_path,
+            auto_optimize=True
+        )
+
+# Process each file in a directory
+input_dir = "mixed_images/"
+output_dir = "mixed_output/"
+os.makedirs(output_dir, exist_ok=True)
+
+for filename in os.listdir(input_dir):
+    if filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+        input_path = os.path.join(input_dir, filename)
+        output_path = os.path.join(output_dir, os.path.splitext(filename)[0] + '.svg')
+        custom_conversion(input_path, output_path)
+```
+
+## Performance Considerations
+
+### Memory Usage
+
+The vectorization process can be memory-intensive, especially for large images or complex conversion parameters. To optimize memory usage:
+
+- Resize very large images before conversion
+- For batch processing, limit num_workers to avoid excessive memory usage
+- Set color_precision to lower values (4-6) for complex color images
+
+### Execution Time
+
+Conversion time depends on:
+
+1. **Image size**: Larger images take longer to process
+2. **Image complexity**: More details and colors increase processing time
+3. **Color mode**: "binary" is generally faster than "color"
+4. **Mode**: "polygon" is usually faster than "spline"
+5. **Parameters**: Higher precision values increase processing time
+
+Typical processing times on modern hardware:
+- Small binary diagrams (800×600): 1-3 seconds
+- Medium photos (1200×800): 5-15 seconds
+- Large complex images (2000×1500): 15-60 seconds
+
+## Changelog (v1.1.0)
+
+### Fixed
+
+- Fixed parameter handling to respect manually specified parameters when auto_optimize=True
+- Improved file path handling for more reliable conversion
+- Better error messages for common failures
+
+### Added
+
+- Batch processing with parallel execution
+- SVG optimization to reduce file size
+- Progress tracking for batch operations
+- Enhanced error handling and validation
+
+### Enhanced
+
+- More robust preprocessing options
+- Better documentation and examples
+- Improved temporary file handling
+
+## Contributing
+
+Contributions to img2vector are welcome! Here are some ways you can contribute:
+
+- Report bugs and suggest features
+- Improve documentation
+- Add examples and tutorials
+- Implement new features or fix bugs
+
+## License
+
+MIT License
+
+## Credits
+
+This project wouldn't be possible without:
+
+- [vtracer](https://github.com/visioncortex/vtracer) - The underlying vectorization engine
+- [OpenCV](https://opencv.org/) - Used for image preprocessing
+- [Pillow](https://python-pillow.org/) - Python Imaging Library fork

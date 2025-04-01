@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="img2vector",
-    version="1.1.2",  # Version bump for new features
+    version="1.0.0",  
     author="Sohail Khan",
     author_email="2013khansohail@gmail.com",
     description="Intelligent image to SVG vectorization with AI-powered optimization",

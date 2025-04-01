@@ -98,6 +98,16 @@ Or, when installed as a package:
 ```bash
 img2vector ui
 ```
+With preprocessing as light
+![light](https://github.com/user-attachments/assets/fbeeaac7-3244-4594-a386-184c495e7021)
+
+With preprocessing as None
+
+![None](https://github.com/user-attachments/assets/060f186b-6d1c-4712-bdfe-b121b7d5ed5a)
+
+UI details 
+![UI details](https://github.com/user-attachments/assets/0f9a265a-f4d8-4b5f-8b51-62c5136d6ac0)
+
 
 ## Image Type Detection
 

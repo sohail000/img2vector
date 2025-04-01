@@ -1,7 +1,8 @@
 # img2vector
 
 
-(https://badge.![img2vector](https://github.com/user-attachments/assets/a305b8e5-c909-4e15-9759-07e9b6cb7a3b)
+![img2vector](https://github.com/user-attachments/assets/4a6786ef-458f-417e-b3eb-11723307235b)
+
 
 [![PyPI version]fury.io/py/img2vector.svg)](https://badge.fury.io/py/img2vector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

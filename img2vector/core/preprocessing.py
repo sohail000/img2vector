@@ -27,10 +27,18 @@ def preprocess_image(image_path, output_path, preprocessing_level="none"):
     # Return if no preprocessing is needed
     if preprocessing_level == "none":
         return
-    
+
+    if preprocessing_level not in ("light", "medium", "heavy"):
+        raise ValueError(
+            f"Invalid preprocessing_level '{preprocessing_level}'. "
+            "Choose from 'none', 'light', 'medium', 'heavy'."
+        )
+
     # Read the image
     img = cv2.imread(image_path)
-    
+    if img is None:
+        raise ValueError(f"Could not read image for preprocessing: {image_path}")
+
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     

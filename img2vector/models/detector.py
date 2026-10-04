@@ -20,6 +20,45 @@ DIAGRAM = "Diagram"
 # Export image types
 IMAGE_TYPES = [LINE_DRAWING, TECHNICAL_DRAWING, PHOTO, GEOMETRIC_SHAPES, DIAGRAM]
 
+# Images are downscaled to at most this many pixels per side before analysis
+MAX_DETECTION_SIZE = 1000
+
+def _to_rgb_array(image):
+    """Convert a PIL Image, numpy array, or image path to an 8-bit RGB array."""
+    if isinstance(image, str):
+        image = Image.open(image)
+
+    if isinstance(image, Image.Image):
+        if image.mode in ("RGBA", "LA", "PA") or (image.mode == "P" and "transparency" in image.info):
+            # Composite transparent areas onto white instead of black
+            rgba = image.convert("RGBA")
+            background = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+            image = Image.alpha_composite(background, rgba)
+        elif image.mode in ("I", "I;16", "F"):
+            # 16-bit / float images: scale down to 8-bit
+            arr = np.asarray(image, dtype=np.float64)
+            rng = arr.max() - arr.min()
+            arr = (arr - arr.min()) / rng * 255 if rng > 0 else np.zeros_like(arr)
+            image = Image.fromarray(arr.astype(np.uint8))
+        return np.array(image.convert("RGB"))
+
+    if isinstance(image, np.ndarray):
+        arr = image
+        if arr.dtype != np.uint8:
+            arr = arr.astype(np.float64)
+            if arr.max() <= 1.0:
+                arr = arr * 255
+            arr = np.clip(arr, 0, 255).astype(np.uint8)
+        if arr.ndim == 2:
+            return cv2.cvtColor(arr, cv2.COLOR_GRAY2RGB)
+        if arr.ndim == 3 and arr.shape[2] == 4:
+            return cv2.cvtColor(arr, cv2.COLOR_RGBA2RGB)
+        if arr.ndim == 3 and arr.shape[2] == 3:
+            return arr
+        raise ValueError(f"Unsupported image array shape: {arr.shape}")
+
+    raise ValueError("Image must be a PIL Image, numpy array, or path to image file")
+
 def detect_image_type(image):
     """
     Detect the type of image to apply optimal parameters.
@@ -30,78 +69,39 @@ def detect_image_type(image):
     Returns:
         str: One of the predefined image types
     """
-    # Handle different input types
-    if isinstance(image, str):
-        # It's a file path
-        img_array = np.array(Image.open(image))
-    elif isinstance(image, Image.Image):
-        # It's a PIL Image
-        img_array = np.array(image)
-    elif isinstance(image, np.ndarray):
-        # It's already a numpy array
-        img_array = image
-    else:
-        raise ValueError("Image must be a PIL Image, numpy array, or path to image file")
-    
-    # Convert to grayscale if needed
-    if len(img_array.shape) == 3:
-        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-    else:
-        gray = img_array
-    
-    # Check if it's mostly black and white
-    unique_values = len(np.unique(gray))
-    is_binary = unique_values < 5
-    
-    # Calculate edge density
+    img_array = _to_rgb_array(image)
+
+    # Work on a bounded size so features (and speed) don't depend on resolution
+    height, width = img_array.shape[:2]
+    scale = MAX_DETECTION_SIZE / max(height, width)
+    if scale < 1:
+        img_array = cv2.resize(img_array, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_AREA)
+
+    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
     edges = cv2.Canny(gray, 50, 150)
+
     edge_density = np.mean(edges) / 255
-    
-    # Calculate histogram for texture analysis
-    hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
-    hist_norm = hist / hist.sum()
-    hist_entropy = -np.sum(hist_norm * np.log2(hist_norm + 1e-10))
-    
-    # Detect lines using Hough transform
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=100, minLineLength=100, maxLineGap=10)
-    line_count = 0 if lines is None else len(lines)
-    
-    # Detect circles
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1, minDist=20, param1=50, param2=30, minRadius=0, maxRadius=0)
-    circle_count = 0 if circles is None else len(circles[0])
-    
-    # Additional features for enhanced detection
     straight_lines_ratio = detect_straight_lines_ratio(edges)
     texture_complexity = calculate_texture_complexity(gray)
     color_complexity = calculate_color_complexity(img_array)
-    
-    # Decision logic with feature importance weighting
-    if is_binary and edge_density > 0.1 and line_count > 10:
-        if circle_count > 5 or straight_lines_ratio > 0.7:
-            return TECHNICAL_DRAWING
-        else:
-            return LINE_DRAWING
-    elif edge_density < 0.05 and hist_entropy < 7 and straight_lines_ratio > 0.8:
-        return GEOMETRIC_SHAPES
-    elif edge_density > 0.1 and line_count > 5 and circle_count > 2:
-        if texture_complexity < 0.3:
-            return DIAGRAM
-        else:
-            return TECHNICAL_DRAWING
-    elif color_complexity > 0.6:
+
+    # Mostly black/white with little color: drawings rather than illustrations
+    saturation = np.mean(cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)[..., 1]) / 255
+    midtones = np.mean((gray > 50) & (gray < 205))
+    is_monochrome = saturation < 0.1 and midtones < 0.05
+
+    # Decision logic
+    if color_complexity > 0.6:
         return PHOTO
-    else:
-        # Fallback with confidence scoring
-        scores = {
-            LINE_DRAWING: score_line_drawing(edge_density, is_binary, texture_complexity),
-            TECHNICAL_DRAWING: score_technical_drawing(straight_lines_ratio, circle_count),
-            GEOMETRIC_SHAPES: score_geometric_shapes(edge_density, hist_entropy),
-            DIAGRAM: score_diagram(line_count, circle_count),
-            PHOTO: score_photo(color_complexity, texture_complexity)
-        }
-        
-        # Return the type with highest score
-        return max(scores.items(), key=lambda x: x[1])[0]
+    if is_monochrome:
+        if straight_lines_ratio > 0.8:
+            # Many straight edges: dense = technical drawing, sparse = simple shape
+            return TECHNICAL_DRAWING if edge_density > 0.03 else GEOMETRIC_SHAPES
+        return LINE_DRAWING
+    if color_complexity < 0.3 and texture_complexity < 0.15:
+        # Flat-colored artwork
+        return GEOMETRIC_SHAPES if straight_lines_ratio > 0.85 else DIAGRAM
+    return PHOTO if texture_complexity > 0.3 else DIAGRAM
 
 def get_optimal_params(image_type):
     """Return optimal parameters based on image type."""
@@ -176,45 +176,38 @@ def get_optimal_params(image_type):
 
 # Helper functions for advanced image analysis
 def detect_straight_lines_ratio(edges):
-    """Calculate the ratio of straight lines to total edges."""
-    # Implementation details would go here
-    # This is a simplified placeholder
-    return 0.5  # Example value
+    """Calculate the fraction of edge pixels that lie on straight line segments."""
+    edge_pixels = np.count_nonzero(edges)
+    if edge_pixels == 0:
+        return 0.0
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=50, minLineLength=20, maxLineGap=5)
+    if lines is None:
+        return 0.0
+    # Draw the detected segments and count how many edge pixels they cover,
+    # so overlapping segments aren't counted twice
+    line_mask = np.zeros_like(edges)
+    for x1, y1, x2, y2 in lines.reshape(-1, 4):
+        cv2.line(line_mask, (int(x1), int(y1)), (int(x2), int(y2)), 255, 3)
+    covered = np.count_nonzero((edges > 0) & (line_mask > 0))
+    return float(covered / edge_pixels)
 
 def calculate_texture_complexity(gray_image):
-    """Calculate texture complexity using GLCM or similar methods."""
-    # Implementation details would go here
-    # This is a simplified placeholder
-    return 0.3  # Example value
+    """Calculate texture complexity as the fraction of pixels with noticeable gradient."""
+    smoothed = cv2.GaussianBlur(gray_image, (3, 3), 0)
+    gx = cv2.Sobel(smoothed, cv2.CV_32F, 1, 0, ksize=3)
+    gy = cv2.Sobel(smoothed, cv2.CV_32F, 0, 1, ksize=3)
+    magnitude = cv2.magnitude(gx, gy)
+    return float(np.mean(magnitude > 30))
 
 def calculate_color_complexity(image):
-    """Calculate color complexity using color histogram variance."""
-    # Implementation details would go here
-    # This is a simplified placeholder
-    return 0.7  # Example value
-
-# Scoring functions
-def score_line_drawing(edge_density, is_binary, texture_complexity):
-    """Score likelihood of being a line drawing."""
-    # Implementation details would go here
-    return 0.7 if (is_binary and edge_density > 0.1) else 0.3
-
-def score_technical_drawing(straight_lines_ratio, circle_count):
-    """Score likelihood of being a technical drawing."""
-    # Implementation details would go here
-    return 0.8 if (straight_lines_ratio > 0.7 and circle_count > 3) else 0.4
-
-def score_geometric_shapes(edge_density, hist_entropy):
-    """Score likelihood of containing geometric shapes."""
-    # Implementation details would go here
-    return 0.9 if (edge_density < 0.05 and hist_entropy < 7) else 0.2
-
-def score_diagram(line_count, circle_count):
-    """Score likelihood of being a diagram."""
-    # Implementation details would go here
-    return 0.85 if (line_count > 5 and circle_count > 2) else 0.3
-
-def score_photo(color_complexity, texture_complexity):
-    """Score likelihood of being a photo."""
-    # Implementation details would go here
-    return 0.95 if (color_complexity > 0.6 and texture_complexity > 0.5) else 0.25
+    """
+    Calculate color complexity from how many distinct colors are needed
+    to cover most of the image (0 = flat colors, 1 = photo-like).
+    """
+    # Quantize to 4 bits per channel so compression noise doesn't count as new colors
+    quantized = (image.reshape(-1, image.shape[-1]) >> 4).astype(np.int32)
+    keys = (quantized[:, 0] << 8) | (quantized[:, 1] << 4) | quantized[:, 2]
+    counts = np.sort(np.bincount(keys))[::-1]
+    coverage = np.cumsum(counts) / counts.sum()
+    colors_for_95 = int(np.searchsorted(coverage, 0.95)) + 1
+    return float(min(colors_for_95 / 256, 1.0))

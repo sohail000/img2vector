@@ -13,7 +13,7 @@ from pathlib import Path
 # Import from the package
 from .core.converter import convert_image
 from .batch_processing import batch_convert
-from .svg_optimization import optimize_svg, install_svgo
+from .svg_optimization import optimize_svg
 
 def create_parser():
     """Create the command line argument parser."""
@@ -36,7 +36,7 @@ def create_parser():
     )
     convert_parser.add_argument(
         "-o", "--output", 
-        help="Output SVG file path (default: <input_filename>.svg in current directory)"
+        help="Output SVG file path (default: input path with a .svg extension)"
     )
     
     # Batch conversion
@@ -185,10 +185,10 @@ def get_conversion_kwargs(args):
     
     return kwargs
 
-def run_cli():
+def run_cli(argv=None):
     """Run the command-line interface."""
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     
     if not args.command:
         parser.print_help()
@@ -228,7 +228,7 @@ def run_cli():
                 result = optimize_svg(args.output, level=args.optimize)
                 _, size_before, size_after, reduction = result
                 print(f"Optimization reduced file size by {reduction:.1f}% " + 
-                      f"({size_before/1024:.1f} KB → {size_after/1024:.1f} KB)")
+                      f"({size_before/1024:.1f} KB -> {size_after/1024:.1f} KB)")
         
         elif args.command == "batch":
             # Batch conversion
@@ -281,7 +281,7 @@ def run_cli():
                     total_reduction = ((total_before - total_after) / total_before) * 100 if total_before > 0 else 0
                     
                     print(f"Optimization reduced total file size by {total_reduction:.1f}% " + 
-                          f"({total_before/1024:.1f} KB → {total_after/1024:.1f} KB)")
+                          f"({total_before/1024:.1f} KB -> {total_after/1024:.1f} KB)")
         
         elif args.command == "optimize":
             # SVG optimization
@@ -294,7 +294,7 @@ def run_cli():
                 _, size_before, size_after, reduction = result
                 
                 print(f"Optimization reduced file size by {reduction:.1f}% " + 
-                      f"({size_before/1024:.1f} KB → {size_after/1024:.1f} KB)")
+                      f"({size_before/1024:.1f} KB -> {size_after/1024:.1f} KB)")
             
             elif os.path.isdir(args.input):
                 # Directory optimization
@@ -347,14 +347,14 @@ def run_cli():
                         total_before += size_before
                         total_after += size_after
                         
-                        print(f"  Reduced by {reduction:.1f}% ({size_before/1024:.1f} KB → {size_after/1024:.1f} KB)")
+                        print(f"  Reduced by {reduction:.1f}% ({size_before/1024:.1f} KB -> {size_after/1024:.1f} KB)")
                     except Exception as e:
                         print(f"  Error: {str(e)}")
                 
                 # Calculate total savings
                 total_reduction = ((total_before - total_after) / total_before) * 100 if total_before > 0 else 0
                 print(f"\nTotal optimization reduced file size by {total_reduction:.1f}% " + 
-                      f"({total_before/1024:.1f} KB → {total_after/1024:.1f} KB)")
+                      f"({total_before/1024:.1f} KB -> {total_after/1024:.1f} KB)")
             
             else:
                 print(f"Error: Input path '{args.input}' does not exist.")
@@ -362,11 +362,11 @@ def run_cli():
         
         elif args.command == "ui":
             # Launch the web UI
-            from .app import create_interface
+            from .app import create_interface, launch_interface
             
             print(f"Starting img2vector web interface on port {args.port}...")
             app = create_interface()
-            app.launch(server_port=args.port, share=args.share)
+            launch_interface(app, server_port=args.port, share=args.share)
         
         return 0  # Success
     

@@ -4,7 +4,7 @@
 ![img2vector](https://github.com/user-attachments/assets/4a6786ef-458f-417e-b3eb-11723307235b)
 
 
-[![PyPI version]fury.io/py/img2vector.svg)](https://badge.fury.io/py/img2vector)
+[![PyPI version](https://badge.fury.io/py/img2vector.svg)](https://badge.fury.io/py/img2vector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An intelligent image to SVG vectorization tool with AI-powered optimization.
@@ -24,6 +24,16 @@ An intelligent image to SVG vectorization tool with AI-powered optimization.
 ```bash
 pip install img2vector
 ```
+
+To install from source:
+
+```bash
+git clone https://github.com/sohail000/img2vector.git
+cd img2vector
+pip install -e .
+```
+
+SVG optimization uses [SVGO](https://github.com/svg/svgo) when it is installed (`npm install -g svgo`) and falls back to a built-in optimizer otherwise.
 
 ## Quick Start
 
@@ -82,6 +92,24 @@ output_path, size_before, size_after, reduction_percentage = result
 print(f"File size reduced by {reduction_percentage:.1f}%")
 print(f"Original: {size_before/1024:.1f} KB → Optimized: {size_after/1024:.1f} KB")
 ```
+
+### Command Line
+
+```bash
+# Convert a single image (writes input.svg next to input.jpg)
+img2vector convert input.jpg
+
+# Convert with options
+img2vector convert input.jpg -o output.svg --preprocessing light --optimize moderate
+
+# Convert a whole folder in parallel
+img2vector batch input_folder/ -o output_folder/ --recursive --workers 4
+
+# Optimize existing SVG files
+img2vector optimize output.svg --level aggressive
+```
+
+Run `img2vector <command> --help` for all options.
 
 ### Web Interface
 
@@ -384,7 +412,20 @@ Typical processing times on modern hardware:
 - Medium photos (1200×800): 5-15 seconds
 - Large complex images (2000×1500): 15-60 seconds
 
-## Changelog (v1.1.0)
+## Changelog
+
+### v1.2.1
+
+- Fixed packaging: the code now lives in an `img2vector/` package, so `pip install` and the `img2vector` command work
+- `batch_convert` and `optimize_svg` can now be imported from `img2vector` as documented
+- Manually specified parameters are always respected with `auto_optimize=True`, even when they match the defaults
+- Image type detection now measures color complexity, texture and straight lines instead of using fixed placeholder values
+- Images with transparency, palettes, CMYK or 16-bit depth no longer crash detection or conversion
+- Temporary files are cleaned up after each conversion
+- SVGO is no longer installed automatically; it is used only if already installed
+- Added `tqdm` to `requirements.txt`
+
+### v1.1.0
 
 ### Fixed
 

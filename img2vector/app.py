@@ -19,6 +19,9 @@ try:
 except ImportError:
     print("WARNING: vtracer not found. Please install with: pip install vtracer")
 
+# Gradio 6 moved the css parameter from gr.Blocks() to launch()
+GRADIO_6 = int(gr.__version__.split(".")[0]) >= 6
+
 # Custom CSS for better appearance
 css = """
 .container {
@@ -149,7 +152,7 @@ def convert_to_vector(
             )
         
         # Read the SVG output
-        with open(output_path, "r") as f:
+        with open(output_path, "r", encoding="utf-8") as f:
             svg_content = f.read()
         
         # Get image dimensions for proper display
@@ -207,14 +210,15 @@ def update_ui_for_auto_optimize(auto_optimize):
 def clear_inputs():
     """Reset all inputs to default values."""
     return [
-        None, True, "none", None, None,
+        None, True, "none", None, None, None,
         "color", "stacked", "spline",
         4, 6, 16, 60, 4.0, 10, 45, 3
     ]
 
 def create_interface():
     """Create and return the Gradio interface."""
-    with gr.Blocks(css=css) as app:
+    blocks_kwargs = {} if GRADIO_6 else {"css": css}
+    with gr.Blocks(**blocks_kwargs) as app:
         with gr.Column(elem_classes=["container"]):
             gr.HTML(
                 """
@@ -404,6 +408,7 @@ def create_interface():
                 preprocessing,
                 result_message,
                 output_html,
+                svg_file,
                 colormode,
                 hierarchical,
                 mode,
@@ -441,6 +446,12 @@ def create_interface():
     
     return app
 
+def launch_interface(app, **launch_kwargs):
+    """Launch the interface, passing the custom CSS where this Gradio version expects it."""
+    if GRADIO_6:
+        launch_kwargs.setdefault("css", css)
+    app.launch(**launch_kwargs)
+
 def main():
     """Launch the img2vector web interface."""
     try:
@@ -454,7 +465,7 @@ def main():
     print("and apply optimal parameters automatically.")
     
     app = create_interface()
-    app.launch(share=True)  # Set share=True to create a public link
+    launch_interface(app, share=True)  # Set share=True to create a public link
 
 if __name__ == "__main__":
     main()
